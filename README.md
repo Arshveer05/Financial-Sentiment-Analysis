@@ -88,7 +88,8 @@ Backpropagation (only classifier head gets gradients)
   We require only about 200k trainable parameters - the FinBERT classifier parameters.
   Adam Optimizer is used with the loss function being Cross Entropy Loss
  
-### Architecture Overview: <img width="768" height="542" alt="image" src="https://github.com/user-attachments/assets/8e3970a2-a410-493d-809e-cc37aa90c3d3" />
+### Architecture Overview: 
+<img width="768" height="542" alt="image" src="https://github.com/user-attachments/assets/8e3970a2-a410-493d-809e-cc37aa90c3d3" />
 
 
    
