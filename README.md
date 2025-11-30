@@ -137,5 +137,86 @@ Training Loop:
 
 
  ## RoBERTa With Keyword Masking (In House Innovation - Provides Novelty)
+ This model introduces a custom keyword-guided attention mask, which forces RoBERTa to focus on financially significant terms.
+ The architecture consists of:
+ 
+     1. Phase 1 — Smart Attribute Discovery (novel preprocessing)
+
+     2. Phase 2 — Keyword-Focused RoBERTa Encoder (novel masking)
+
+     3. Phase 3 — Classification Head
+
+     4. Phase 4 — Best-epoch weight selection
+ This is a hybrid system combining statistical feature selection, keyword-based masking, and transformer pooling.
+
+ ### Smart Attribute Discovery
+ Inputs
+ 
+      1. Title
+      2. Description
+      3. Keywords list (50 manually selected keywords)
+
+  We convert the text to a bag of words using the CountVectorizer then apply a chi square test to extract the top 200 most label predictive words and then merge it with the manually created keywords list.
+  Thus we get a hybrid keyword dictionary.
+
+  ### Keyword focused dataset
+  Dataset returns:
+
+     1. input_ids
+
+     2. attention_mask
+
+     3. keyword_mask
+
+     4. labels
+
+ Keyword Mask Logic:
+      
+ For every token in the input sequence:
+
+     1. Convert token ID → token text
+
+     2. Strip RoBERTa’s “Ġ” marker - to be able to match keywords
+
+     3. Lowercase
+
+     4. Check if token ∈ smart_attribute_list
+     
+  This produces a tensor of shape: keyword_mask: [seq_len]
+
+### Keyword Focused RoBERTa Encoder
+Base Model: roberta-base
+Standard outputs: last_hidden_state: [batch(16), seq_len(max 160), 768]
+
+
+Then apply keyword masking to embeddings and multiply the embeddings:
+masked_embeddings = last_hidden_state * expanded_mask
+
+
+We use a different kind of pooling here compared to previous models:
+
+     pooled_output = sum(masked_embeddings) / sum(keyword_mask)
+
+So final embedding is:
+
+     1. Average only across financially relevant tokens
+
+     2. Completely discards irrelevant context (stopwords, filler, etc.)
+
+pooled_output: [batch(16) , 768]
+
+### Classification Head
+Dropout(0.3)
+Linear(768 → 3)
+
+### Training Architecture
+  AdamW optimizer (weight decay 0.02)
+  Warmup + linear decay
+  Gradient clipping applied
+### Architecture Overview:
+<img width="1600" height="971" alt="image" src="https://github.com/user-attachments/assets/83cdd21b-d2a0-4cbb-a771-b260db05558a" />
+
+  
+
  ## RoBERTa further Pre-trained (In House pretraining)
  ## Multi Transformer(BERT + RoBERTa + DistilBERT) Embeddings + LSTM 
