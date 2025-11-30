@@ -36,7 +36,55 @@ The system processes raw financial articles, performs transformer-based encoding
     
                  - Total Parameters around 110 Million
   We use FinBERT as a frozen encoder, which means there are no weight updates to the FinBERT layers and we are not using FinBERTs classification head, only its embeddings.
-### <img width="584" height="225" alt="image" src="https://github.com/user-attachments/assets/e5137d3d-59a0-4fb3-a397-8cb355795c09" />
+### Tokenization
+  The Auto Tokenizer from the pretrained ProsusAI FinBERT model is used and this gives us:
+
+    1. Input IDs
+    2. Attention Mask
+  Max Token Length is 128 Tokens
+### Embedding Extraction and Trainable Classifier Heads
+    last_hidden_state:  [batch_size, seq_len, 768]
+   Apply Mean Pooling to create a single embedding per input with the embedding size of 768.
+
+   We use a 2 layer feed forward neural network
+   Input: 768-d FinBERT vector
+----------------------------------------------------------
+Dropout(p=0.3)
+Linear(768 → 256)
+ReLU
+Dropout(p=0.3)
+Linear(256 → 3 classes)
+Output: logits (raw scores)
+----------------------------------------------------------
+### End to End Forward Pipeline
+Raw Text
+   ↓
+Tokenizer (FinBERT)
+   ↓
+input_ids, attention_mask
+   ↓
+Frozen FinBERT Encoder
+   ↓
+last_hidden_state (768-d embeddings per token)
+   ↓
+Mean Pooling
+   ↓
+Document Embedding (768-d)
+   ↓
+Feed-Forward Classifier
+   ↓
+Logits
+   ↓
+CrossEntropyLoss
+   ↓
+Backpropagation (only classifier head gets gradients)
+### Training Architecture
+  We require only about 200k trainable parameters - the FinBERT classifier parameters.
+  Adam Optimizer is used with the loss function being Cross Entropy Loss
+ 
+### Architecture Overview: <img width="1024" height="559" alt="image" src="https://github.com/user-attachments/assets/30a0134d-9d36-416c-a8fc-b9328b999a21" />
+
+
 
 
    
