@@ -50,11 +50,17 @@ The system processes raw financial articles, performs transformer-based encoding
    Input: 768-d FinBERT vector
 ----------------------------------------------------------
 Dropout(p=0.3)
+
 Linear(768 → 256)
+
 ReLU
+
 Dropout(p=0.3)
+
 Linear(256 → 3 classes)
+
 Output: logits (raw scores)
+
 ----------------------------------------------------------
 ### End to End Forward Pipeline
 Raw Text
@@ -82,9 +88,7 @@ Backpropagation (only classifier head gets gradients)
   We require only about 200k trainable parameters - the FinBERT classifier parameters.
   Adam Optimizer is used with the loss function being Cross Entropy Loss
  
-### Architecture Overview: <img width="1024" height="559" alt="image" src="https://github.com/user-attachments/assets/30a0134d-9d36-416c-a8fc-b9328b999a21" />
-
-
+### Architecture Overview: <img width="768" height="542" alt="image" src="https://github.com/user-attachments/assets/8e3970a2-a410-493d-809e-cc37aa90c3d3" />
 
 
    
