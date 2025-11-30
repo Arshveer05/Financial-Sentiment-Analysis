@@ -8,8 +8,10 @@ The system processes raw financial articles, performs transformer-based encoding
    ### Inputs
      1. title
      2. description
+     3. keywords
+     4. sentiment (label)
    Concatenated into one field:
-   Text = Title + " " + Description
+   Text = Title + " " + Description + " " + Keywords
    ### Label Processing
    LabelEncoder converts raw labels to integer IDs
 
