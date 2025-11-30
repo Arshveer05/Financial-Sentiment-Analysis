@@ -90,10 +90,52 @@ Backpropagation (only classifier head gets gradients)
  
 ### Architecture Overview: 
 <img width="768" height="542" alt="image" src="https://github.com/user-attachments/assets/8e3970a2-a410-493d-809e-cc37aa90c3d3" />
-
-
    
  ## RoBERTa
+ With RoBERTa we use a 2 stage hypbrid model:
+ 
+        Stage 1 uses a Frozen RoBERTa Encoder which acts as a feature extractor
+        Stage 2 uses a trainable Lightweight Feed Forward Classifier
+        
+ ### Tokenization
+ roberta-base autotokenizer tokenizes the text and pads and truncates it to 128 tokens, this returns
+
+      1. Input IDs
+      2. Attention Mask
+ All RoBERTa weights are frozen i.e. it is in inference mode only, this returns the output: last_hidden_state → shape [batch, seq_len, 768]
+ For Sentence Embeddings we use mean pooling that produces a 768 dimensional embedding per document
+ ### Trainable Classifier
+ ------------------------------------------------------
+
+Input: 768-d embedding
+
+Dropout(p=0.3)
+
+Linear(768 → 256)
+
+ReLU
+
+Dropout(p=0.3)
+
+Linear(256 → 3_CLASSES)
+
+Output: unnormalized logits
+
+------------------------------------------------------
+### Training
+Since only the classifier head is trainable over here as well , we have about 200k parameters
+Training Loop:
+
+    1. Mini-batch training
+
+    2. No gradient flow into RoBERTa
+
+    3. Validation at each epoch
+
+### Architecture Overview:
+<img width="870" height="538" alt="image" src="https://github.com/user-attachments/assets/0ad30352-8a41-43bc-bc45-fb62596a60bd" />
+
+
  ## RoBERTa With Keyword Masking (In House Innovation - Provides Novelty)
  ## RoBERTa further Pre-trained (In House pretraining)
  ## Multi Transformer(BERT + RoBERTa + DistilBERT) Embeddings + LSTM 
