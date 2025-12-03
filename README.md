@@ -144,14 +144,6 @@ It contains high-quality real-world financial articles with structured metadata.
 
 # **5. Methodology**
 
-##  Overview Diagram
-
-<img width="573" height="420" alt="image" src="https://github.com/user-attachments/assets/7e1a3ab6-890e-4b0d-a091-bb94061cdeec" />
-
-
-
-
----
 
 ## **5.1 Domain-Adaptive Pretraining**
 
