@@ -218,10 +218,8 @@ This ensures:
 
 ## **5.6 Full Architecture Diagram**
 
-```
 <img width="573" height="420" alt="image" src="https://github.com/user-attachments/assets/8f6862a4-3e25-4624-8f25-e2247fb8b265" />
 
-```
 
 ---
 
@@ -244,10 +242,10 @@ This ensures:
 * Concatenated (2304-dim)
 * Fed into a BiLSTM (256 units)
 
-```
+
 <img width="649" height="351" alt="image" src="https://github.com/user-attachments/assets/997cc8fc-b415-4275-9cad-64da66ba04e9" />
 
-```
+
 
 
 ---
