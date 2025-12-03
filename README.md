@@ -90,6 +90,7 @@ Fin-RoBERTa is designed precisely to solve this.
 * Treats all tokens equally
 * Computationally heavy
 * Struggles with neutral statements
+* 86% Accuracy
 
 **Gap:** Lacks explicit financial keyword emphasis.
 
@@ -101,6 +102,7 @@ Fin-RoBERTa is designed precisely to solve this.
 * Suitable for real-time systems
 * No domain-pretraining
 * Misses subtle context cues
+* 90% Accuracy
 
 **Gap:** High efficiency ≠ financial domain competence.
 
@@ -153,21 +155,22 @@ This improves:
 * Financial jargon understanding
 * Contextual reasoning
 * Detection of subtle sentiment shifts
+* This is what created Fin-RoBERTa
 
 ---
 
-## **5.2 Smart Attribute Discovery**
+## **5.2 Smart Attribute Discovery(Our Innovation)**
 
 ### Hybrid Keyword Vocabulary:
 
 1. **Chi-Square selection** → top 200 high-sentiment-correlation words
-2. **Manual lexicon** → essential financial terms
+2. **Manual lexicon** → Around 30 essential financial terms added by us manually to ensure they are not missed and as a backup
 
 This ensures coverage of rare but crucial keywords (e.g., *guidance cut, regulatory scrutiny*).
 
 ---
 
-## **5.3 Keyword Masking Mechanism**
+## **5.3 Keyword Masking Mechanism(Our Innovation)**
 
 During tokenization:
 
@@ -177,6 +180,7 @@ During tokenization:
 | Other      | **0**      |
 
 The mask is applied element-wise to the last hidden layer outputs.
+This creates a masked embedding which is then passsed forward
 
 ---
 
@@ -220,6 +224,7 @@ This ensures:
 * CLS pooling
 * No pretraining
 * No keyword masking
+* Results below
 
 ---
 
@@ -240,9 +245,10 @@ This ensures:
 
 ---
 
-## **6.3 Ablation: RoBERTa + Masking Only**
+## **6.3 Ablation: RoBERTa + Masking Only(No Pretraining)**
 
-* Showed improvement
+* Showed improvement-Decent results but could be improved
+* This involves using our innovation but no pre-traiining
 * Lacked strong financial semantic grounding
 * Confirmed pretraining + masking is essential
 
@@ -255,7 +261,7 @@ This ensures:
 | Model             | Accuracy | F1 Score   | Loss     |
 | ----------------- | -------- | ---------- | -------- |
 | RoBERTa Baseline  | 79%      | 69.13      | 0.46     |
-| RoBERTa + Masking | 84–85%   | 78–80      | 0.44     |
+| RoBERTa + Masking | 84%      | 78         | 0.44     |
 | **Fin-RoBERTa**   | **88%**  | **83.30%** | **0.41** |
 
 ### 🔍 Key Observations
