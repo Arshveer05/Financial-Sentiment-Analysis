@@ -26,9 +26,7 @@ To address this gap, **Fin-RoBERTa** introduces a **keyword-aware masked pooling
 * [7. Results](#7-results)
 * [8. Lessons Learned](#8-lessons-learned)
 * [9. Future Work](#9-future-work)
-* [10. Installation & Usage](#10-installation--usage)
-* [11. Repository Structure](#11-repository-structure)
-* [12. References](#12-references)
+* [10. References](#10-references)
 
 ---
 
@@ -321,4 +319,11 @@ Expand into event categories:
 
 Sentiment × Event-Type = actionable market insights.
 
+---
+
+# **10. References**
+
+Araci, D. T. (2019). FinBERT: Financial Sentiment Analysis with Pre-trained Language Models. arXiv:1908.10063.
+
+Khaliq, A., Ali, A., Ajaz, S., & Paul, F. (2025). Comparative Analysis of FinBERT and DistilRoBERTa for NLP-Based Financial Insights in Pakistan’s Stock Market.
 
