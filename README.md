@@ -264,7 +264,7 @@ This ensures:
 | RoBERTa + Masking | 84%      | 78         | 0.44     |
 | **Fin-RoBERTa**   | **88%**  | **83.30%** | **0.41** |
 
-### 🔍 Key Observations
+### Key Observations
 
 * Keyword masking gives significant boosts
 * Domain-adaptive pretraining improves subtle reasoning
