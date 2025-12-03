@@ -73,9 +73,9 @@ This combination allows the model to attend to the *right* words instead of proc
 5. **Latency & Practical Constraints**
    Financial systems require real-time inference and cannot afford full-scale model retraining.
 
-### 🎯 Core Problem Statement
+###  Core Problem Statement
 
-> **How can we bias transformer models to prioritize financially meaningful tokens without increasing model size or relying on costly domain-pretraining alone?**
+**How can we bias transformer models to prioritize financially meaningful tokens without increasing model size or relying on costly domain-pretraining alone?**
 
 Fin-RoBERTa is designed precisely to solve this.
 
