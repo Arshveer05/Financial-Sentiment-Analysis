@@ -1,224 +1,327 @@
-# Financial-Sentiment-Analysis
-A multi model analysis for news sentiment classification on the Polygon.io financial news dataset.
-The system processes raw financial articles, performs transformer-based encoding, trains multiple deep learning architectures (including FinBERT, RoBERTa variants, multi-transformer fusion, keyword-focused masking, and a custom continued-pretrained RoBERTa), and evaluates them systematically.
 
-# Project Structure
- ## Data Pipeline and Preprocessing
- 
-   ### Inputs
-     1. title
-     2. description
-     3. keywords
-     4. sentiment (label)
-   Concatenated into one field:
-   Text = Title + " " + Description + " " + Keywords
-   ### Label Processing
-   LabelEncoder converts raw labels to integer IDs
+# **Fin-RoBERTa: A Financial Sentiment Analysis Approach Using Keyword Masking**
 
-   The project implements 5 different models as mentioned below:
- ## FinBERT
-   The model used was created by ProsusAI. 
-   FinBERT is based on BERT-base-uncased, but is pretrained on general-domain English further finetuned on financial text, including:
-   
-     1. 10-K filings
-     
-     2. Analyst reports
-     
-     3. Earnings call transcripts
-     
-     4. Financial news
-  This makes it ideal for financial sentiment tasks.
-  Model Details: 
-  
-                 - 12 Transformer Encoder Layers
-
-                 - 12 Attention Heads per Layer
-    
-                 - Hidden Size = 768
-    
-                 - Total Parameters around 110 Million
-  We use FinBERT as a frozen encoder, which means there are no weight updates to the FinBERT layers and we are not using FinBERTs classification head, only its embeddings.
-### Tokenization
-  The Auto Tokenizer from the pretrained ProsusAI FinBERT model is used and this gives us:
-
-    1. Input IDs
-    2. Attention Mask
-  Max Token Length is 128 Tokens
-### Embedding Extraction and Trainable Classifier Heads
-    last_hidden_state:  [batch_size, seq_len, 768]
-   Apply Mean Pooling to create a single embedding per input with the embedding size of 768.
-
-   We use a 2 layer feed forward neural network
-   Input: 768-d FinBERT vector
-----------------------------------------------------------
-Dropout(p=0.3)
-
-Linear(768 → 256)
-
-ReLU
-
-Dropout(p=0.3)
-
-Linear(256 → 3 classes)
-
-Output: logits (raw scores)
-
-----------------------------------------------------------
-### End to End Forward Pipeline
-Raw Text
-   ↓
-Tokenizer (FinBERT)
-   ↓
-input_ids, attention_mask
-   ↓
-Frozen FinBERT Encoder
-   ↓
-last_hidden_state (768-d embeddings per token)
-   ↓
-Mean Pooling
-   ↓
-Document Embedding (768-d)
-   ↓
-Feed-Forward Classifier
-   ↓
-Logits
-   ↓
-CrossEntropyLoss
-   ↓
-Backpropagation (only classifier head gets gradients)
-### Training Architecture
-  We require only about 200k trainable parameters - the FinBERT classifier parameters.
-  Adam Optimizer is used with the loss function being Cross Entropy Loss
- 
-### Architecture Overview: 
-<img width="768" height="542" alt="image" src="https://github.com/user-attachments/assets/8e3970a2-a410-493d-809e-cc37aa90c3d3" />
-   
- ## RoBERTa
- With RoBERTa we use a 2 stage hypbrid model:
- 
-        Stage 1 uses a Frozen RoBERTa Encoder which acts as a feature extractor
-        Stage 2 uses a trainable Lightweight Feed Forward Classifier
-        
- ### Tokenization
- roberta-base autotokenizer tokenizes the text and pads and truncates it to 128 tokens, this returns
-
-      1. Input IDs
-      2. Attention Mask
- All RoBERTa weights are frozen i.e. it is in inference mode only, this returns the output: last_hidden_state → shape [batch, seq_len, 768]
- For Sentence Embeddings we use mean pooling that produces a 768 dimensional embedding per document
- ### Trainable Classifier
- ------------------------------------------------------
-
-Input: 768-d embedding
-
-Dropout(p=0.3)
-
-Linear(768 → 256)
-
-ReLU
-
-Dropout(p=0.3)
-
-Linear(256 → 3_CLASSES)
-
-Output: unnormalized logits
-
-------------------------------------------------------
-### Training
-Since only the classifier head is trainable over here as well , we have about 200k parameters
-Training Loop:
-
-    1. Mini-batch training
-
-    2. No gradient flow into RoBERTa
-
-    3. Validation at each epoch
-
-### Architecture Overview:
-<img width="870" height="538" alt="image" src="https://github.com/user-attachments/assets/0ad30352-8a41-43bc-bc45-fb62596a60bd" />
+### *Authors: Arnav Sawhney, Arshveer Chhabra, Manya Mittal, Parth Sanghvi*
 
 
- ## RoBERTa With Keyword Masking (In House Innovation - Provides Novelty)
- This model introduces a custom keyword-guided attention mask, which forces RoBERTa to focus on financially significant terms.
- The architecture consists of:
- 
-     1. Phase 1 — Smart Attribute Discovery (novel preprocessing)
 
-     2. Phase 2 — Keyword-Focused RoBERTa Encoder (novel masking)
+---
 
-     3. Phase 3 — Classification Head
+##  **Project Overview**
 
-     4. Phase 4 — Best-epoch weight selection
- This is a hybrid system combining statistical feature selection, keyword-based masking, and transformer pooling.
+Financial sentiment analysis is fundamentally different from general-domain NLP sentiment tasks. The language is more technical, context-heavy, and nuanced. Subtle modifiers, negations, and financial jargon often determine sentiment. Traditional transformer models—despite being powerful—treat all tokens uniformly, causing key financial terms to be lost in dense textual noise.
 
- ### Smart Attribute Discovery
- Inputs
- 
-      1. Title
-      2. Description
-      3. Keywords list (50 manually selected keywords)
+To address this gap, **Fin-RoBERTa** introduces a **keyword-aware masked pooling mechanism** combined with **domain-adaptive pretraining**. This produces a specialized, interpretable, and high-performance model tailored for financial news sentiment analysis.
 
-  We convert the text to a bag of words using the CountVectorizer then apply a chi square test to extract the top 200 most label predictive words and then merge it with the manually created keywords list.
-  Thus we get a hybrid keyword dictionary.
+---
 
-  ### Keyword focused dataset
-  Dataset returns:
+#  **Table of Contents**
 
-     1. input_ids
+* [1. Introduction](#1-introduction)
+* [2. Problem Motivation](#2-problem-motivation)
+* [3. Review of Existing Solutions](#3-review-of-existing-solutions)
+* [4. Dataset & Preparation](#4-dataset--preparation)
+* [5. Methodology](#5-methodology)
+* [6. Experiments & Baselines](#6-experiments--baselines)
+* [7. Results](#7-results)
+* [8. Lessons Learned](#8-lessons-learned)
+* [9. Future Work](#9-future-work)
+* [10. Installation & Usage](#10-installation--usage)
+* [11. Repository Structure](#11-repository-structure)
+* [12. References](#12-references)
 
-     2. attention_mask
+---
 
-     3. keyword_mask
+# **1. Introduction**
 
-     4. labels
+Sentiment analysis in finance is critical for:
 
- Keyword Mask Logic:
-      
- For every token in the input sequence:
+* Market movement prediction
+* Trading automation
+* Risk management
+* Event-driven analytics
+* News-based investment strategies
 
-     1. Convert token ID → token text
+However, financial text is **dense, factual, and lexically complex**, with over 60% of sentences often labeled *neutral*. This makes generic models perform poorly due to missed subtleties.
 
-     2. Strip RoBERTa’s “Ġ” marker - to be able to match keywords
+Fin-RoBERTa addresses this through:
 
-     3. Lowercase
+* **Financial domain-adaptive pretraining (DAP)**
+* **Keyword masking (token-level gating)**
+* **Keyword-focused mean pooling**
+* **Smart attribute discovery (Chi-Square + manual lexicon)**
 
-     4. Check if token ∈ smart_attribute_list
-     
-  This produces a tensor of shape: keyword_mask: [seq_len]
+This combination allows the model to attend to the *right* words instead of processing all tokens equally.
 
-### Keyword Focused RoBERTa Encoder
-Base Model: roberta-base
-Standard outputs: last_hidden_state: [batch(16), seq_len(max 160), 768]
+---
 
+# **2. Problem Motivation**
 
-Then apply keyword masking to embeddings and multiply the embeddings:
-masked_embeddings = last_hidden_state * expanded_mask
+### Why Financial Sentiment is Hard
 
 
-We use a different kind of pooling here compared to previous models:
+1. **Domain-Specific Vocabulary**
+   Terms such as *liquidity, liability, guidance, EPS* can have sentiment polarity only in financial contexts.
 
-     pooled_output = sum(masked_embeddings) / sum(keyword_mask)
+2. **High Neutrality of News**
+   Most financial articles are factual, making neutral classification ambiguous and challenging.
 
-So final embedding is:
+3. **Polysemy & Modifier-Dependence**
+   Words like *loss*, *gain*, *beat*, *slump* rely heavily on nearby modifiers such as *slightly, unexpectedly, marginally*.
 
-     1. Average only across financially relevant tokens
+4. **Token Importance is Uneven**
+   Only 1–3 keywords may determine the entire sentiment of an article.
 
-     2. Completely discards irrelevant context (stopwords, filler, etc.)
+5. **Latency & Practical Constraints**
+   Financial systems require real-time inference and cannot afford full-scale model retraining.
 
-pooled_output: [batch(16) , 768]
+### 🎯 Core Problem Statement
 
-### Classification Head
-Dropout(0.3)
-Linear(768 → 3)
+> **How can we bias transformer models to prioritize financially meaningful tokens without increasing model size or relying on costly domain-pretraining alone?**
 
-### Training Architecture
-  AdamW optimizer (weight decay 0.02)
-  Warmup + linear decay
-  Gradient clipping applied
-### Architecture Overview:
-<img width="1600" height="971" alt="image" src="https://github.com/user-attachments/assets/83cdd21b-d2a0-4cbb-a771-b260db05558a" />
+Fin-RoBERTa is designed precisely to solve this.
 
-  
+---
 
- ## RoBERTa further Pre-trained (In House pretraining)
- ## Multi Transformer(BERT + RoBERTa + DistilBERT) Embeddings + LSTM 
+# **3. Review of Existing Solutions**
+
+## **3.1 FinBERT (Araci, 2019)**
+
+* Great domain adaptation
+* Poor interpretability
+* Treats all tokens equally
+* Computationally heavy
+* Struggles with neutral statements
+
+**Gap:** Lacks explicit financial keyword emphasis.
+
+---
+
+## **3.2 DistilRoBERTa (Khaliq et al., 2025)**
+
+* Lightweight & fast
+* Suitable for real-time systems
+* No domain-pretraining
+* Misses subtle context cues
+
+**Gap:** High efficiency ≠ financial domain competence.
+
+---
+
+# **4. Dataset & Preparation**
+
+We use the **Polygon.io Financial News Dataset** (Kaggle).
+It contains high-quality real-world financial articles with structured metadata.
+
+### **Data Fields Used**
+
+* Title
+* Description
+* Keywords
+* Sentiment (pos/neu/neg)
+
+### **Preprocessing Steps**
+
+* Remove duplicates
+* Remove empty & non-English rows
+* Normalize labels
+* Stratified 80/10/10 split
+
+### **Dataset Characteristics**
+
+* **Positive:** 3626 (65.3%)
+* **Neutral:** 1270 (22.9%)
+* **Negative:** 649 (11.7%)
+* Avg description length: **41.3 words**
+* Avg keywords: **4.59**
+
+### **Why this dataset?**
+
+* Realistic financial language
+* Natural class imbalance
+* High-quality labeling
+* Ideal for supervised financial sentiment modeling
+
+---
+
+# **5. Methodology**
+
+##  Overview Diagram
+
+```
+<img width="573" height="420" alt="image" src="https://github.com/user-attachments/assets/7e1a3ab6-890e-4b0d-a091-bb94061cdeec" />
+
+```
+
+
+---
+
+## **5.1 Domain-Adaptive Pretraining**
+
+We extend RoBERTa-base using MLM on a large financial news corpus (US-based articles).
+This improves:
+
+* Financial jargon understanding
+* Contextual reasoning
+* Detection of subtle sentiment shifts
+
+---
+
+## **5.2 Smart Attribute Discovery**
+
+### Hybrid Keyword Vocabulary:
+
+1. **Chi-Square selection** → top 200 high-sentiment-correlation words
+2. **Manual lexicon** → essential financial terms
+
+This ensures coverage of rare but crucial keywords (e.g., *guidance cut, regulatory scrutiny*).
+
+---
+
+## **5.3 Keyword Masking Mechanism**
+
+During tokenization:
+
+| Token Type | Mask Value |
+| ---------- | ---------- |
+| Keyword    | **1**      |
+| Other      | **0**      |
+
+The mask is applied element-wise to the last hidden layer outputs.
+
+---
+
+## **5.4 Keyword-Focused Pooling**
+
+Instead of CLS pooling:
+
+```
+pooled = Σ(maskᵢ * hᵢ) / Σ(maskᵢ)
+```
+
+This ensures:
+
+* Higher weight for sentiment-bearing tokens
+* Reduced noise from filler text
+* Better performance in subtle contexts
+* Increased interpretability
+
+---
+
+## **5.5 Classification Head**
+
+* Masked pooled embedding
+* Dropout
+* Linear layer
+* Softmax for 3-class output
+
+---
+
+## **5.6 Full Architecture Diagram**
+
+```
+<img width="573" height="420" alt="image" src="https://github.com/user-attachments/assets/8f6862a4-3e25-4624-8f25-e2247fb8b265" />
+
+```
+
+---
+
+# **6. Experiments & Baselines**
+
+## **6.1 Baseline Model: Standard RoBERTa**
+
+* CLS pooling
+* No pretraining
+* No keyword masking
+
+---
+
+## **6.2 Transformer Fusion Model (Exploratory)**
+
+### Architecture:
+
+* BERT-base + RoBERTa-base + DistilBERT
+* Mean pooled individually
+* Concatenated (2304-dim)
+* Fed into a BiLSTM (256 units)
+
+```
+<img width="649" height="351" alt="image" src="https://github.com/user-attachments/assets/997cc8fc-b415-4275-9cad-64da66ba04e9" />
+
+```
+
+
+---
+
+## **6.3 Ablation: RoBERTa + Masking Only**
+
+* Showed improvement
+* Lacked strong financial semantic grounding
+* Confirmed pretraining + masking is essential
+
+---
+
+# **7. Results**
+
+### **Overall Model Comparison**
+
+| Model             | Accuracy | F1 Score   | Loss     |
+| ----------------- | -------- | ---------- | -------- |
+| RoBERTa Baseline  | 79%      | 69.13      | 0.46     |
+| RoBERTa + Masking | 84–85%   | 78–80      | 0.44     |
+| **Fin-RoBERTa**   | **88%**  | **83.30%** | **0.41** |
+
+### 🔍 Key Observations
+
+* Keyword masking gives significant boosts
+* Domain-adaptive pretraining improves subtle reasoning
+* Neutral class is hardest due to ambiguity
+* Final model surpasses both FinBERT and DistilRoBERTa on financial news
+
+---
+
+# **8. Lessons Learned**
+
+1. **Keyword emphasis is critical**
+   Financial sentiment often lives in a handful of key terms.
+
+2. **Pretraining + Masking = the perfect combination**
+   Contextual grounding + keyword amplification is essential.
+
+3. **Neutral class is inherently difficult**
+   Requires advanced modeling to capture factual but non-polar statements.
+
+4. **Statistical + manual vocabulary works best**
+
+5. **Complex ≠ better**
+   Multi-transformer fusion adds computation but little benefit.
+
+6. **CLS pooling is suboptimal for finance**
+   Keyword-focused pooling dramatically boosts performance.
+
+7. **Lightweight models without domain training struggle**
+   Domain knowledge cannot be replaced by compression.
+
+---
+
+# **9. Future Work**
+
+###  **1. Stock-wise Sentiment Attribution**
+
+* Identify tickers within news
+* Assign sentiment to each entity
+* Enables portfolio-level impact analysis
+
+###  **2. Event-Type Classification**
+
+Expand into event categories:
+
+* Earnings beat/miss
+* M&A
+* Regulatory action
+* Layoffs
+* Guidance changes
+
+Sentiment × Event-Type = actionable market insights.
+
+
